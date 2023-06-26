@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="mappers.org.sakila.norbs.ActorMapper" >
+
+    <resultMap id="getActor" type="model.org.sakila.norbs.ActorModel">
+        <result property="lastName" column="last_name"/>
+        <result property="lastUpdate" column="last_update"/>
+        <result property="actorId" column="actor_id"/>
+        <result property="firstName" column="first_name"/>
+
+    </resultMap>
+
+    <resultMap id="getActorDTO" type="dto.org.sakila.norbs.ActorDTO">
+        <result property="actor_id" column="actor_id"/>
+        <result property="first_name" column="first_name"/>
+        <result property="last_name" column="last_name"/>
+        <result property="last_update" column="last_update"/>
+    </resultMap>
+
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO actor(first_name, last_name) VALUES
+        <foreach collection="list" item="item" open="(" separator="),(" close=")">
+            #{item.first_name},
+            #{item.last_name}
+        </foreach>
+    </insert>
+
+    <insert id="insertSelective">
+        INSERT INTO actor(first_name,last_name)
+        VALUES (#{first_name},#{last_name})
+    </insert>
+
+    <insert id="insertActor">
+        INSERT INTO actor(actor_id,first_name,last_name)
+        VALUES (#{actorId},#{firstName},#{lastName})
+    </insert>
+
+
+    <delete id="batchDeleteByIds">
+        DELETE FROM actor
+        WHERE actor_id IN
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <select id="getAllActors" resultMap="getActor">
+        SELECT *
+        FROM actor
+        <foreach collection="actorIds" close=")" open="where actor_id in(" separator="," item="id">
+            #{id}
+        </foreach>
+    </select>
+
+
+
+    <select id="findActor" resultMap="getActor">
+        SELECT
+        last_name,
+        first_name,
+        last_update,
+        actor_id
+        FROM actor
+
+        <where>
+            <if test="actor_id !=null and actor_id!=''">
+               and actor_id =#{actor_id}
+            </if>
+            <if test="first_name !=null and first_name!=''">
+                and first_name =#{first_name}
+            </if>
+            <if test="last_name !=null and last_name!=''">
+                and last_name =#{last_name}
+            </if>
+        </where>
+    </select>
+
+    <select id="ifIdExist" resultType="java.lang.Integer">
+        select count(actor_id)
+        FROM actor where actor_id =#{id}
+    </select>
+
+    <select id="queryActors" resultType="model.org.sakila.norbs.ActorModel">
+        select
+        actor_id as actorId,
+        first_name as firstName,
+        last_name as lastName
+        from actor
+        where
+        <foreach collection="list" close=")" open="actor_id in(" separator="," item="id">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="checkFirstName" resultType="java.lang.String">
+        SELECT first_name FROM
+        actor WHERE first_name=#{firstname}
+    </select>
+
+
+    <select id="checkLastName" resultType="java.lang.String">
+        SELECT last_name FROM
+        actor WHERE last_name=#{lastname}
+    </select>
+    <select id="checkBothFirstLastNames" resultType="java.lang.Boolean">
+        SELECT EXISTS (
+        select first_name, last_name from actor where first_name=#{firstname} and last_name=#{lastname}
+        ) as boolean
+    </select>
+
+    <select id="countIds" resultType="java.lang.Integer">
+        SELECT * FROM actor
+        ORDER BY actor_id DESC LIMIT 1
+    </select>
+
+    <sql id="Base_Column_List">
+            id, name
+    </sql>
+
+    <select id="sample" resultType="java.lang.Integer">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM actor
+        ORDER BY actor_id DESC LIMIT 1
+    </select>
+
+
+    <select id="verifyNames" resultMap="getActorDTO">
+        select first_name, last_name
+        FROM actor
+        <where>
+            first_name in
+            <foreach collection="fName" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            and last_name in
+            <foreach collection="lName" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+
+    <select id="verifyIds" resultType="dto.org.sakila.norbs.ActorDTO">
+        select actor_id
+        FROM actor
+        where actor_id in
+        <foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+
+    <select id="exportActor" resultType="model.org.sakila.norbs.ActorModel">
+        SELECT
+        actor_id as actorId,
+        first_name as firstName,
+        last_name as lastName,
+        last_update as lastUpdate
+        FROM actor
+    </select>
+    <select id="queryActorModelList" resultType="model.org.sakila.norbs.ActorModel">
+        select actor_id actorId,
+        first_name firstName,
+        last_name lastName,
+        last_update lastUpdate
+        from actor
+        where actor_id =#{actor_id}
+    </select>
+
+
+    <select id="pageGetAllActors" resultType="model.org.sakila.norbs.ActorModel">
+        SELECT
+        actor_id actorId,
+        first_name firstName,
+        last_name lastName,
+        last_update lastUpdate
+        FROM actor
+       <!-- WHERE  <![CDATA[actor_id <> 1 ]]>-->
+       <!-- where actor_id in (select actor_id from actor where actor_id not in  (1,2,3))-->
+
+
+     <!--  where 1=1
+        and actor_id in (
+            select actor_id from actor
+            <where> 1=1
+                <if test="actor_id !=null">
+                   and actor_id= #{actor_id}
+                </if>
+                </where>)
+-->
+    </select>
+
+
+    <update id="updateActorLastName">
+        UPDATE actor
+        SET
+        last_name = #{lastName}
+        WHERE actor_id = #{actorId}
+    </update>
+
+    <update id="lastNameBatchUpdate">
+        update actor
+        set last_name =#{lastName}
+       <where>
+               <foreach collection="list" close=")" open="actor_id in(" separator="," item="id">
+                   #{id}
+               </foreach>
+       </where>
+    </update>
+
+    <insert id="insertActorFirstName" parameterType="list">
+        insert into actor
+        (actor_id,
+        first_name,
+        last_name,
+        last_update
+        ) VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.actor_id},
+            #{item.first_name},
+            #{item.last_name},
+            #{item.last_update}
+            )
+        </foreach>
+    </insert>
+
+
+    <update id="updateActorFirstName">
+        <foreach collection="list" item="item" open="" close="" separator=";">
+            update actor
+            <set>
+                first_name = #{item.first_name},
+                last_name = #{item.last_name},
+                last_update = now()
+            </set>
+            where actor_id = #{item.actor_id}
+        </foreach>
+    </update>
+
+    <!--commission_date = DATE_FORMAT(#{commissionDate}, '%Y-%m')-->
+
+
+    <select id="batchSelect" resultType="model.org.sakila.norbs.ActorModel">
+        SELECT
+        actor_id actorId,
+        first_name firstName,
+        last_name lastName,
+        last_update lastUpdate
+        FROM actor
+        WHERE actor_id IN
+        <foreach collection="actorIds" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+
+
+    <update id="updateActorDetails">
+            UPDATE actor
+            <set>
+                first_name = #{firstName},
+                last_name = #{lastName},
+                last_update = now()
+            </set>
+            WHERE actor_id = #{actorId}
+    </update>
+
+
+
+</mapper>
