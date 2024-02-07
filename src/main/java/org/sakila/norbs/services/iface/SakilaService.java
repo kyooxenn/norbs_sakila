@@ -2,40 +2,37 @@ package org.sakila.norbs.services.iface;
 
 import com.github.pagehelper.PageInfo;
 import org.sakila.norbs.dto.ActorDTO;
-import org.sakila.norbs.dto.v2ActorDTO;
-import org.sakila.norbs.model.ActorModel;
+import org.sakila.norbs.model.Actor;
 import org.sakila.norbs.vo.ResponseVO;
+import org.springframework.http.HttpStatus;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 
 public interface SakilaService {
 
-    List<ActorModel> getAllActors(ActorDTO actorDTO);
+    PageInfo<Actor> getAllActors(ActorDTO actorDTO);
 
-    PageInfo pageGetAllActors();
 
-    ActorModel findActor(ActorDTO actorDTO);
+    Actor findActor(ActorDTO actorDTO);
 
-    ActorModel updateActorLastName(ActorDTO actorDTO);
+    Actor updateActorLastName(ActorDTO actorDTO);
 
     ResponseVO batchInsertActor(ActorDTO actorDTO);
 
-    String insertActor(v2ActorDTO actorDTO);
+    HttpStatus insertActor(ActorDTO actorDTO);
 
-    List<ActorModel> updateLastNameBatchUpdate(ActorDTO actorDTO);
+    List<Actor> updateLastNameBatchUpdate(ActorDTO actorDTO);
 
-    List<ActorModel> getActorNames(ActorDTO actorDTO);
+    List<Actor> getActorNames(ActorDTO actorDTO);
 
     ResponseVO batchDeleteActor(ActorDTO actorDTO);
 
-    ByteArrayInputStream exportActor();
 
     int editActor(List<ActorDTO> dto);
 
-    String editActors (v2ActorDTO v2ActorDTO);
+    String editActors (ActorDTO actorDTO);
 
-    List<ActorModel> batchSelectActor (v2ActorDTO dto);
+    List<Actor> batchSelectActor (ActorDTO actorDTO);
 
-    List<ActorModel> sortRecords(ActorDTO dto);
+    List<Actor> sortRecords(ActorDTO actorDTO);
 }

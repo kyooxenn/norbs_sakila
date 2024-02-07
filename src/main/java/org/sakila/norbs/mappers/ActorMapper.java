@@ -4,9 +4,7 @@ import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.sakila.norbs.dto.ActorDTO;
-import org.sakila.norbs.dto.v2ActorDTO;
-import org.sakila.norbs.model.ActorModel;
-import org.sakila.norbs.utils.DataSourceMapper;
+import org.sakila.norbs.model.Actor;
 
 import java.util.List;
 
@@ -15,7 +13,7 @@ public interface ActorMapper {
 
      int updateActorLastName(String lastName, int actorId);
 
-     ActorModel findActor(ActorDTO actorDTO);
+     Actor findActor(ActorDTO actorDTO);
 
      Boolean checkBothFirstLastNames(String firstname,String lastname);
 
@@ -23,15 +21,15 @@ public interface ActorMapper {
 
      String checkLastName(String lastname);
 
-     List<ActorModel> getAllActors(ActorDTO actorDTO);
+     List<Actor> getAllActors(ActorDTO actorDTO);
 
-     List<ActorModel> pageGetAllActors();
+     List<Actor> pageGetAllActors();
 
      Integer countIds();
 
-     List<ActorDTO> verifyNames(@Param("fName") List<String> fName, @Param("lName")List<String> lName);
+     List<Actor> verifyNames(@Param("fName") List<String> fName, @Param("lName")List<String> lName);
 
-     List<ActorDTO> verifyIds(@Param("ids") List<Integer> ids);
+     List<Actor> verifyIds(@Param("ids") List<Integer> ids);
 
 
 
@@ -41,27 +39,26 @@ public interface ActorMapper {
 
      int insertSelective(ActorDTO actorDTO);
 
-     int insertActor(v2ActorDTO actorDTO);
+     int insertActor(ActorDTO actorDTO);
 
      int batchDeleteByIds(@Param("list") List<Integer> ids);
 
      int ifIdExist(Integer id);
 
 
-     List<ActorModel> queryActors(@Param("list") List<Integer> ids);
+     List<Actor> queryActors(@Param("list") List<Integer> ids);
 
      int lastNameBatchUpdate(@Param("list") List<Integer> ids , String lastName);
 
-     Page<ActorModel> exportActor();
+     Page<Actor> exportActor();
 
-     @DataSourceMapper(dataSource = "slave")
-     List<ActorModel> queryActorModelList(ActorDTO dto);
+     List<Actor> queryActorModelList(ActorDTO dto);
 
      int insertActorFirstName(List<ActorDTO> insertList);
 
      int updateActorFirstName(List<ActorDTO> updateList);
 
-     List<ActorModel> batchSelect(v2ActorDTO v2ActorDTO);
+     List<Actor> batchSelect(ActorDTO dto);
 
-     int updateActorDetails(v2ActorDTO v2ActorDTO);
+     int updateActorDetails(ActorDTO dto);
 }

@@ -1,22 +1,23 @@
 package org.sakila.norbs.services.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.mysql.cj.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.sakila.norbs.dto.ActorDTO;
-import org.sakila.norbs.dto.v2ActorDTO;
 import org.sakila.norbs.mappers.ActorMapper;
-import org.sakila.norbs.model.ActorModel;
+import org.sakila.norbs.model.Actor;
 import org.sakila.norbs.services.iface.SakilaService;
 import org.sakila.norbs.utils.ListSplitUtil;
 import org.sakila.norbs.vo.ParentCommonStatusCode;
 import org.sakila.norbs.vo.ResponseHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.sakila.norbs.utils.CollectionUtil;
-import org.sakila.norbs.utils.ExportActorCsvHelper;
 import org.sakila.norbs.vo.ResponseVO;
+import org.springframework.util.CollectionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
@@ -32,77 +33,20 @@ public class SakilaServiceImpl implements SakilaService {
     ActorMapper actorMapper;
 
 
-    public List<ActorModel> getAllActors(ActorDTO actorDTO) {
-        return actorMapper.getAllActors(actorDTO);
+    public PageInfo<Actor> getAllActors(ActorDTO actorDTO) {
+        PageHelper.startPage(actorDTO.getPageNum(),actorDTO.getPageSize());
+        List<Actor> actorList= actorMapper.getAllActors(actorDTO);
+        return new PageInfo<>(actorList);
     }
 
-    public PageInfo pageGetAllActors() {
-      List<ActorModel> list =  actorMapper.pageGetAllActors();
-      /*  if(CollectionUtil.isNotEmpty(pageInfo.getList())) {
-            pageInfo.getList().forEach(item-> {
-                item.setFirstName("norbs");
-            });
-        }*/
-
-
-    /*    Map<Integer, ActorModel> map = pageInfo.getList().stream().collect(Collectors.toMap(ActorModel::getActorId, ActorModel-> ActorModel));
-        for (ActorModel list: pageInfo.getList()) {
-            ActorModel actorModel = map.get(list.getActorId());
-            log.info("actorModel {}",actorModel);
-        }*/
-
-
-
-        // String name = pageInfo.getList().stream().map(ActorModel::getFirstName).filter(Objects::nonNull).reduce(String::join).get().toLowerCase();
-        // log.info("name {}", name);
-
-      /*  List<ActorModel> newList = pageInfo.getList().stream()
-                .peek(f -> f.setFirstName("hermsss"))
-                .collect(Collectors.toList());
-
-
-        List<ActorModel> nwList = pageInfo.getList().stream()
-                .peek(t->{
-
-                    t.setFirstName("herms");
-                    t.setLastName("norbs");
-                })
-                .collect(Collectors.toList());*/
-        return new PageInfo<>(list);
-    }
-
-    public ActorModel findActor(ActorDTO actorDTO) {
+    public Actor findActor(ActorDTO actorDTO) {
         return actorMapper.findActor(actorDTO);
     }
 
-    public ActorModel updateActorLastName(ActorDTO actorDTO) {
-        int getActors = actorMapper.updateActorLastName(actorDTO.getLast_name(), actorDTO.getActor_id());
-        ActorModel actorModels =actorMapper.findActor(actorDTO);
-
-        return actorModels;
-
-   /*     List<ActorModel> getActors = actorMapper.getAllActors();
-
-        //initialization
-
-        //alternate for each
-       *//* getActors.forEach((v)->
-                System.out.println("Hello"));
-*//*
-
-        int i = 0;
-        for (ActorModel list : getActors) {
-
-            list.setLastName("Coronado");
-            System.out.println("Name: " + getActors.get(i).getLastName() + "  id: " + getActors.get(i).getActorId());
-            actorMapper.setAllActorLastName(getActors.get(i).getActorId(), list.getLastName());
-
-            i += 1;
-        }*/
-
+    @Override
+    public Actor updateActorLastName(ActorDTO actorDTO) {
+        return null;
     }
-
-
 
 
     @Override
@@ -124,17 +68,17 @@ public class SakilaServiceImpl implements SakilaService {
 
 
     @Override
-    public String insertActor(v2ActorDTO actorDTO){
+    public HttpStatus insertActor(ActorDTO actorDTO){
       int a=  actorMapper.insertActor(actorDTO);
       log.info("insertActorInt:{}",a);
-        return "Success!";
+      return HttpStatus.OK;
     }
 
 
    @Override
     public ResponseVO batchInsertActor(ActorDTO actorDTO){
-        String firstName = actorDTO.getFirst_name();
-        String lastName = actorDTO.getLast_name();
+        String firstName = actorDTO.getFirstName();
+        String lastName = actorDTO.getLastName();
         String [] arrNames1 = firstName.split(",");
         String [] arrNames2 = lastName.split(",");
 
@@ -147,17 +91,14 @@ public class SakilaServiceImpl implements SakilaService {
 
        List<ActorDTO> actorDTOList = new ArrayList<>();
        for (int i = 0; i < arrNames1.length; i++) {
-          // boolean isExist = actorMapper.checkBothFirstLastNames(arrNames1[i], arrNames2[i]);
-          // if (!isExist) {
-               ActorDTO acD = new ActorDTO();
-               acD.setActor_id(actorMapper.countIds()+1);
-               acD.setFirst_name(arrNames1[i]);
-               acD.setLast_name(arrNames2[i]);
-               acD.setCreated_at(LocalDateTime.now());
-               acD.setLast_update("");
-               actorDTOList.add(acD);
-               actorMapper.insertSelective(acD);
-        //   }
+           ActorDTO acD = new ActorDTO();
+           acD.setActorId(actorMapper.countIds()+1);
+           acD.setFirstName(arrNames1[i]);
+           acD.setLastName(arrNames2[i]);
+           acD.setCreateAt(LocalDateTime.now());
+           acD.setLastUpdate(LocalDateTime.now().toString());
+           actorDTOList.add(acD);
+           actorMapper.insertSelective(acD);
        }
        List<List<ActorDTO>> returnList = new ArrayList<>();
        returnList.add(actorDTOList);
@@ -165,21 +106,21 @@ public class SakilaServiceImpl implements SakilaService {
    }
 
     private String verifyNames(List<String> firstName, List<String> lastName) {
-        List<ActorDTO> listNamesInfo = actorMapper.verifyNames(firstName, lastName);
-        Map<String, List<ActorDTO>> mapFirstNamesInfo = listNamesInfo.stream().collect(Collectors.groupingBy(ActorDTO::getFirst_name));
-        Map<String, List<ActorDTO>> mapLastNamesInfo = listNamesInfo.stream().collect(Collectors.groupingBy(ActorDTO::getLast_name));
+        List<Actor> listNamesInfo = actorMapper.verifyNames(firstName, lastName);
+        Map<String, List<Actor>> mapFirstNamesInfo = listNamesInfo.stream().collect(Collectors.groupingBy(Actor::getFirstName));
+        Map<String, List<Actor>> mapLastNamesInfo = listNamesInfo.stream().collect(Collectors.groupingBy(Actor::getLastName));
 
         StringBuffer errorMsg = new StringBuffer();
         List<String> first = new ArrayList<>();
         List<String> last = new ArrayList<>();
         List<String> fullName = new ArrayList<>();
         for (String fName : firstName) {
-            if (!CollectionUtil.isEmpty(mapFirstNamesInfo.get(fName))) {
+            if (!CollectionUtils.isEmpty(mapFirstNamesInfo.get(fName))) {
                 first.add(fName);
             }
         }
         for (String lName : lastName) {
-            if (!CollectionUtil.isEmpty(mapLastNamesInfo.get(lName))) {
+            if (!CollectionUtils.isEmpty(mapLastNamesInfo.get(lName))) {
                 last.add(lName);
             }
         }
@@ -198,12 +139,12 @@ public class SakilaServiceImpl implements SakilaService {
 
 
     public String verifyIds(List<Integer> ids) {
-        List<ActorDTO> listIds = actorMapper.verifyIds(ids);
-        Map<Integer, List<ActorDTO>> mapIds = listIds.stream().collect(Collectors.groupingBy(ActorDTO::getActor_id));
+        List<Actor> listIds = actorMapper.verifyIds(ids);
+        Map<Integer, List<Actor>> mapIds = listIds.stream().collect(Collectors.groupingBy(Actor::getActorId));
         StringBuffer errorMsg = new StringBuffer();
         List<Integer> idsList = new ArrayList<>();
         for (Integer id : ids) {
-            if (CollectionUtil.isEmpty(mapIds.get(id))) {
+            if (CollectionUtils.isEmpty(mapIds.get(id))) {
                 idsList.add(id);
             }
         }
@@ -212,8 +153,8 @@ public class SakilaServiceImpl implements SakilaService {
     }
 
 
-    public List<ActorModel> updateLastNameBatchUpdate(ActorDTO actorDTO) {
-        String lastName  = actorDTO.getLast_name();
+    public List<Actor> updateLastNameBatchUpdate(ActorDTO actorDTO) {
+        String lastName  = actorDTO.getLastName();
         List<List<Integer>> splitIds = split(actorDTO.getActorIds(),20);
         for (List<Integer> list: splitIds) {
             actorMapper.lastNameBatchUpdate(list,lastName);
@@ -222,12 +163,12 @@ public class SakilaServiceImpl implements SakilaService {
         return getActorNames(actorDTO);
     }
 
-    public List<ActorModel> getActorNames(ActorDTO actorDTO){
+    public List<Actor> getActorNames(ActorDTO actorDTO){
         List<Integer> actorIds = actorDTO.getActorIds();
         List<List<Integer>> actors = ListSplitUtil.split(actorIds, 20);
-        List<ActorModel> result = new ArrayList<>();
+        List<Actor> result = new ArrayList<>();
         for (List<Integer> list : actors) {
-            List<ActorModel> ids = actorMapper.queryActors(list);
+            List<Actor> ids = actorMapper.queryActors(list);
                 result.addAll(ids);
         }
         return result;
@@ -250,13 +191,6 @@ public class SakilaServiceImpl implements SakilaService {
         return result;
     }
 
-    public ByteArrayInputStream exportActor() {
-        List<ActorModel> exportFile = actorMapper.exportActor();
-        log.info("exportFile: {}",exportFile);
-        ByteArrayInputStream download = ExportActorCsvHelper.exportHelperToCsv(exportFile);
-        return download;
-    }
-
     @Override
     public int editActor(List<ActorDTO> list) {
         List<ActorDTO> insertList = new ArrayList<>();
@@ -267,26 +201,26 @@ public class SakilaServiceImpl implements SakilaService {
             dto = act;
         }
         //check actor models
-        List<ActorModel> actorModelList = actorMapper.queryActorModelList(dto);
+        List<Actor> actorModelList = actorMapper.queryActorModelList(dto);
         log.info("actorModelList:{}",actorModelList);
-        Map<Integer,ActorModel> map =actorModelList.stream().collect(Collectors.toMap(ActorModel::getActorId, ActorModel->ActorModel));
+        Map<Integer,Actor> map =actorModelList.stream().collect(Collectors.toMap(Actor::getActorId, ActorModel->ActorModel));
         //compare list
         for (ActorDTO actorDTO: list) {
-            actorDTO.setFirst_name(actorDTO.getFirst_name());
+            actorDTO.setFirstName(actorDTO.getFirstName());
             //get actors
-            ActorModel actorModel = map.get(actorDTO.getActor_id());
+            Actor actorModel = map.get(actorDTO.getActorId());
             log.info("actorDTO MEN {}",actorDTO);
             log.info("actorModel:{}",actorModel);
             if(actorModel==null) {
                 //new actors
-                actorDTO.setLast_update(LocalDateTime.now().toString());
-                actorDTO.setActor_id(0);
+                actorDTO.setLastUpdate(LocalDateTime.now().toString());
+                actorDTO.setActorId(0);
                 insertList.add(actorDTO);
                 log.info("inserted {}", insertList);
             } else {
                 //if first name is different , modify the firstname
-                if(!actorModel.getFirstName().equals(actorDTO.getFirst_name())) {
-                    actorDTO.setActor_id(actorDTO.getActor_id());
+                if(!actorModel.getFirstName().equals(actorDTO.getFirstName())) {
+                    actorDTO.setActorId(actorDTO.getActorId());
                     updateList.add(actorDTO);
                     log.info("update success! {}", updateList);
                 }
@@ -302,20 +236,19 @@ public class SakilaServiceImpl implements SakilaService {
     }
 
     @Override
-    public String editActors(v2ActorDTO v2ActorDTO) {
+    public String editActors(ActorDTO actorDTO) {
 
-        List<ActorModel> recordList = actorMapper.batchSelect(v2ActorDTO);
+        List<Actor> recordList = actorMapper.batchSelect(actorDTO);
         log.info("recordList:{}",recordList);
         StringBuffer msg = new StringBuffer();
         List<Integer> updatedActorIds = new ArrayList<>();
         List<Integer> notUpdatedActorIds = new ArrayList<>();
 
         recordList.forEach(item-> {
-            v2ActorDTO dto = new v2ActorDTO();
-            dto.setFirstName(!v2ActorDTO.getFirstName().equals(item.getFirstName()) ? v2ActorDTO.getFirstName() : "");
-            dto.setLastName(!v2ActorDTO.getLastName().equals(item.getLastName()) ? v2ActorDTO.getLastName() : "");
+            ActorDTO dto = new ActorDTO();
+            dto.setFirstName(!actorDTO.getFirstName().equals(item.getFirstName()) ? actorDTO.getFirstName() : "");
+            dto.setLastName(!actorDTO.getLastName().equals(item.getLastName()) ? actorDTO.getLastName() : "");
             dto.setActorId(item.getActorId());
-       //     v2ActorDTO.setLastUpdate(CommonDateUtil.now().toString());
             if (!"".equals(dto.getFirstName()) && !"".equals(dto.getLastName())) {
                 int updateActorDetails = actorMapper.updateActorDetails(dto);
                 log.info("updateActorDetails:{}",updateActorDetails);
@@ -332,12 +265,12 @@ public class SakilaServiceImpl implements SakilaService {
     }
 
     @Override
-    public List<ActorModel> batchSelectActor(v2ActorDTO dto) {
+    public List<Actor> batchSelectActor(ActorDTO dto) {
       return actorMapper.batchSelect(dto);
     }
 
     @Override
-    public List<ActorModel> sortRecords(ActorDTO dto) {
+    public List<Actor> sortRecords(ActorDTO dto) {
 
         Map<String, String> map = new HashMap<>();
         map.put("24", "Sheesh");
@@ -368,9 +301,7 @@ public class SakilaServiceImpl implements SakilaService {
                 }).collect(Collectors.toList()));*/
 
         dto.setActorIds(cat.stream().map(Integer::parseInt).collect(Collectors.toList()));
-
-        List<ActorModel> responseVO = actorMapper.getAllActors(dto);
-
+        List<Actor> responseVO = actorMapper.getAllActors(dto);
         return responseVO;
     }
 
@@ -391,12 +322,12 @@ public class SakilaServiceImpl implements SakilaService {
         ActorDTO dto = new ActorDTO();
         dto.setActorIds(Arrays.asList(24,1, 8, 9));
         System.out.println(dto.getActorIds());
-        List<ActorModel> responseVO = actorMapper.getAllActors(dto);
+        List<Actor> responseVO = actorMapper.getAllActors(dto);
         System.out.println("responseVO"+responseVO);
         Assert.isTrue(!responseVO.isEmpty(), "failed to call model"  );
-        List<ActorModel> list = responseVO;
+        List<Actor> list = responseVO;
         Map<String , String> map = new LinkedHashMap<>();
-        for (ActorModel v: list) {
+        for (Actor v: list) {
             map.put(String.valueOf(v.getActorId()),v.getLastName());
         }
         return map;

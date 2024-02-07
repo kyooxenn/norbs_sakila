@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="mappers.org.sakila.norbs.ActorMapper" >
+<mapper namespace="org.sakila.norbs.mappers.ActorMapper" >
 
-    <resultMap id="getActor" type="model.org.sakila.norbs.ActorModel">
-        <result property="lastName" column="last_name"/>
-        <result property="lastUpdate" column="last_update"/>
+    <resultMap id="getActor" type="org.sakila.norbs.model.Actor">
         <result property="actorId" column="actor_id"/>
         <result property="firstName" column="first_name"/>
-
-    </resultMap>
-
-    <resultMap id="getActorDTO" type="dto.org.sakila.norbs.ActorDTO">
-        <result property="actor_id" column="actor_id"/>
-        <result property="first_name" column="first_name"/>
-        <result property="last_name" column="last_name"/>
-        <result property="last_update" column="last_update"/>
+        <result property="lastName" column="last_name"/>
+        <result property="lastUpdate" column="last_update"/>
     </resultMap>
 
 
@@ -49,9 +41,11 @@
     <select id="getAllActors" resultMap="getActor">
         SELECT *
         FROM actor
+        <if test="actorIds !=null and actorIds.size()=0">
         <foreach collection="actorIds" close=")" open="where actor_id in(" separator="," item="id">
             #{id}
         </foreach>
+        </if>
     </select>
 
 
@@ -65,14 +59,14 @@
         FROM actor
 
         <where>
-            <if test="actor_id !=null and actor_id!=''">
-               and actor_id =#{actor_id}
+            <if test="actorId !=null and actorId!=''">
+               and actor_id =#{actorId}
             </if>
-            <if test="first_name !=null and first_name!=''">
-                and first_name =#{first_name}
+            <if test="firstName !=null and firstName!=''">
+                and first_name =#{firstName}
             </if>
-            <if test="last_name !=null and last_name!=''">
-                and last_name =#{last_name}
+            <if test="lastName !=null and lastName!=''">
+                and last_name =#{lastName}
             </if>
         </where>
     </select>
@@ -82,7 +76,7 @@
         FROM actor where actor_id =#{id}
     </select>
 
-    <select id="queryActors" resultType="model.org.sakila.norbs.ActorModel">
+    <select id="queryActors" resultType="org.sakila.norbs.model.Actor">
         select
         actor_id as actorId,
         first_name as firstName,
@@ -127,7 +121,7 @@
     </select>
 
 
-    <select id="verifyNames" resultMap="getActorDTO">
+    <select id="verifyNames" resultMap="getActor">
         select first_name, last_name
         FROM actor
         <where>
@@ -143,7 +137,7 @@
     </select>
 
 
-    <select id="verifyIds" resultType="dto.org.sakila.norbs.ActorDTO">
+    <select id="verifyIds" resultType="org.sakila.norbs.model.Actor">
         select actor_id
         FROM actor
         where actor_id in
@@ -153,7 +147,7 @@
     </select>
 
 
-    <select id="exportActor" resultType="model.org.sakila.norbs.ActorModel">
+    <select id="exportActor" resultType="org.sakila.norbs.model.Actor">
         SELECT
         actor_id as actorId,
         first_name as firstName,
@@ -161,7 +155,8 @@
         last_update as lastUpdate
         FROM actor
     </select>
-    <select id="queryActorModelList" resultType="model.org.sakila.norbs.ActorModel">
+
+    <select id="queryActorModelList" resultType="org.sakila.norbs.model.Actor">
         select actor_id actorId,
         first_name firstName,
         last_name lastName,
@@ -171,7 +166,7 @@
     </select>
 
 
-    <select id="pageGetAllActors" resultType="model.org.sakila.norbs.ActorModel">
+    <select id="pageGetAllActors" resultType="org.sakila.norbs.model.Actor">
         SELECT
         actor_id actorId,
         first_name firstName,
@@ -244,7 +239,7 @@
     <!--commission_date = DATE_FORMAT(#{commissionDate}, '%Y-%m')-->
 
 
-    <select id="batchSelect" resultType="model.org.sakila.norbs.ActorModel">
+    <select id="batchSelect" resultType="org.sakila.norbs.model.Actor">
         SELECT
         actor_id actorId,
         first_name firstName,

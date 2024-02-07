@@ -12,5 +12,4 @@ public class BaseDto implements Serializable {
 
     private int pageSize = 10;
 
-
 }
